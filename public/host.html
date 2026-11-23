@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RWTRP Broadcast — Host (Race Director)</title>
+  <link rel="stylesheet" href="/vendor/titillium-web/400.css" />
+  <link rel="stylesheet" href="/vendor/titillium-web/600.css" />
+  <link rel="stylesheet" href="/vendor/titillium-web/700.css" />
+  <link rel="stylesheet" href="/vendor/titillium-web/900.css" />
+  <link rel="stylesheet" href="/vendor/jetbrains-mono/400.css" />
+  <link rel="stylesheet" href="/vendor/jetbrains-mono/700.css" />
+  <link rel="stylesheet" href="/vendor/jetbrains-mono/800.css" />
+  <link rel="stylesheet" href="/css/base.css" />
+  <link rel="stylesheet" href="/css/host.css" />
+</head>
+<body class="host">
+  <div class="conn-banner" id="connBanner">⚠ СОЕДИНЕНИЕ ПОТЕРЯНО — ПЕРЕПОДКЛЮЧЕНИЕ…</div>
+
+  <header class="host-top">
+    <div class="brand">
+      <div class="brand-mark">R</div>
+      <div>
+        <div class="brand-name">RWTRP HOST</div>
+        <div class="brand-sub">RACE DIRECTOR CONSOLE</div>
+      </div>
+    </div>
+    <span class="chip" id="topSession">—</span>
+    <span class="chip" id="topLap">—</span>
+    <span class="chip" id="topFlag">—</span>
+    <div class="spacer"></div>
+    <span class="tb-live off" id="liveBadge"><span class="pulse-dot"></span><span id="liveText">STANDBY</span></span>
+    <a class="btn btn-sm" href="/checker" target="_blank" rel="noopener">↗ Open Checker</a>
+    <a class="btn btn-sm btn-ghost" href="/" target="_blank" rel="noopener">Landing</a>
+  </header>
+
+  <main class="host-grid">
+    <!-- ============ LEFT: session control ============ -->
+    <section class="host-col left">
+      <div class="card">
+        <div class="card-title">Session</div>
+        <div class="field-row">
+          <div class="full"><label class="lbl">Race name</label><input class="input" id="inRaceName" /></div>
+          <div><label class="lbl">Round</label><input class="input" id="inRound" type="number" min="1" /></div>
+          <div><label class="lbl">Session type</label>
+            <select class="input" id="inSessionType">
+              <option value="FP1">FP1 — Practice 1</option>
+              <option value="FP2">FP2 — Practice 2</option>
+              <option value="FP3">FP3 — Practice 3</option>
+              <option value="Q">Q — Qualifying</option>
+              <option value="R">R — Race</option>
+            </select>
+          </div>
+          <div><label class="lbl">Track</label><input class="input" id="inTrackName" /></div>
+          <div><label class="lbl">Track seed</label><input class="input" id="inTrackSeed" type="number" min="1" /></div>
+          <div><label class="lbl">Total laps</label><input class="input" id="inTotalLaps" type="number" min="1" /></div>
+          <div><label class="lbl">DRS</label>
+            <select class="input" id="inDrs"><option value="1">Enabled</option><option value="0">Disabled</option></select>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-primary btn-sm" id="btnApplyMeta">Apply</button>
+          <button class="btn btn-sm" id="btnRandomTrack">🎲 Random track</button>
+        </div>
+        <div class="hint">Seed generates the 2D circuit on the checker. Same seed = same track for everyone.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Race control</div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="btnStatusPre">⏸ Pre-race</button>
+          <button class="btn btn-sm btn-primary" id="btnStatusLive">▶ Go live</button>
+          <button class="btn btn-sm" id="btnStatusFinished">🏁 Finish</button>
+        </div>
+        <div class="field-row" style="margin-top:10px">
+          <div><label class="lbl">Current lap</label><input class="input" id="inLap" type="number" min="1" /></div>
+          <div><label class="lbl">Clock (sec)</label><input class="input" id="inClock" type="number" min="0" /></div>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-sm" id="btnSetLap">Set lap</button>
+          <button class="btn btn-sm btn-primary" id="btnNextLap">⏭ Next lap</button>
+          <button class="btn btn-sm" id="btnSetClock">Set clock</button>
+        </div>
+        <div class="btn-row stack" style="margin-top:8px">
+          <button class="btn btn-sm btn-ghost" id="btnRestartRace">↺ Restart race (lap 1)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Flags</div>
+        <div class="flag-grid" id="flagGrid"></div>
+        <div style="margin-top:14px">
+          <div class="lbl" style="text-align:center">Sector flags</div>
+          <div class="sector-flags" id="sectorFlags"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Weather</div>
+        <div class="field-row">
+          <div class="full"><label class="lbl">Condition</label>
+            <select class="input" id="inWxCondition">
+              <option value="dry">Dry</option><option value="cloudy">Cloudy</option>
+              <option value="rain">Rain</option><option value="storm">Storm</option>
+            </select>
+          </div>
+          <div><label class="lbl">Air °C</label><input class="input" id="inWxAir" type="number" /></div>
+          <div><label class="lbl">Track °C</label><input class="input" id="inWxTrack" type="number" /></div>
+          <div><label class="lbl">Wind</label><input class="input" id="inWxWind" /></div>
+          <div><label class="lbl">Humidity %</label><input class="input" id="inWxHumidity" type="number" /></div>
+        </div>
+        <div class="btn-row" style="margin-top:10px"><button class="btn btn-sm" id="btnApplyWeather">Apply weather</button></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Checker scene</div>
+        <div class="seg" id="sceneSeg" style="width:100%">
+          <button data-scene="race" style="flex:1">RACE</button>
+          <button data-scene="feed" style="flex:1">FEED</button>
+          <button data-scene="results" style="flex:1">RESULTS</button>
+          <button data-scene="standings" style="flex:1">STANDINGS</button>
+          <button data-scene="analysis" style="flex:1">CHART</button>
+        </div>
+        <div class="hint">What the players see on the checker right now.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Danger zone</div>
+        <div class="btn-row stack">
+          <button class="btn btn-sm btn-danger" id="btnBlankRace">🧹 Blank race (empty session)</button>
+          <button class="btn btn-sm btn-danger" id="btnResetDemo">♻ Reset to demo world</button>
+        </div>
+        <div class="hint">Demo world restores the factory Round 3 state. Blank race keeps the championship but clears the session.</div>
+      </div>
+    </section>
+
+    <!-- ============ CENTER: field control ============ -->
+    <section class="host-col center">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
+        <div class="card-title">Running order <span style="margin-left:auto" class="dim mono" id="fieldCount"></span></div>
+        <div class="dtable-head">
+          <span>POS</span><span>#</span><span>DRIVER</span><span>GAP (s)</span><span>TYRE</span><span>LAP TIME</span><span>CONTROLS</span><span>EDIT</span>
+        </div>
+        <div id="driverTable" style="overflow-y:auto;flex:1;min-height:0"></div>
+        <div style="border-top:1px solid var(--line);padding-top:12px;margin-top:12px">
+          <div class="card-title">Add driver</div>
+          <div class="field-row" style="grid-template-columns:70px 70px 1fr 1fr 90px auto">
+            <div><label class="lbl">Number</label><input class="input" id="ndNumber" type="number" placeholder="99" /></div>
+            <div><label class="lbl">Code</label><input class="input" id="ndShort" placeholder="ABC" maxlength="3" /></div>
+            <div><label class="lbl">Name</label><input class="input" id="ndName" placeholder="Driver name" /></div>
+            <div><label class="lbl">Team</label><input class="input" id="ndTeam" placeholder="Team" /></div>
+            <div><label class="lbl">Color</label><input class="input" id="ndColor" type="color" value="#8f9aa8" style="padding:4px;height:38px" /></div>
+            <div style="align-self:end"><button class="btn btn-primary btn-sm" id="btnAddDriver">+ Add</button></div>
+          </div>
+          <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:12px;color:var(--dim)">
+            <input type="checkbox" id="ndPlayer" /> 🎮 This is a player (human) driver
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RIGHT: broadcast + championship ============ -->
+    <section class="host-col right">
+      <div class="card">
+        <div class="card-title">Spotter / Radio</div>
+        <label class="lbl">Driver (optional)</label>
+        <select class="input" id="inOverlayDriver"><option value="">— Race control / all —</option></select>
+        <label class="lbl" style="margin-top:10px">Message</label>
+        <textarea class="input" id="inOverlayText" rows="2" placeholder="Car alongside into turn 4…"></textarea>
+        <div class="phrases" id="spotterPhrases" style="margin-top:10px"></div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="btnSpotter">◉ Spotter</button>
+          <button class="btn btn-sm" id="btnRadio">◉ Radio</button>
+          <button class="btn btn-sm btn-ghost" id="btnClearOverlay">Clear</button>
+        </div>
+        <div class="radio-log" id="radioLog" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Feed note</div>
+        <div class="field-row" style="grid-template-columns:110px 1fr">
+          <div><label class="lbl">Type</label>
+            <select class="input" id="inFeedType">
+              <option value="note">Note</option><option value="incident">Incident</option>
+              <option value="penalty">Penalty</option><option value="strategy">Strategy</option>
+              <option value="weather">Weather</option><option value="system">Info</option>
+            </select>
+          </div>
+          <div><label class="lbl">Text</label><input class="input" id="inFeedText" placeholder="What happened on track?" /></div>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-primary btn-sm" id="btnPushFeed">Push to feed</button>
+          <button class="btn btn-sm btn-ghost" id="btnClearFeed">Clear feed</button>
+        </div>
+        <div class="feed-log" id="feedLog" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Championship</div>
+        <div class="field-row">
+          <div><label class="lbl">Name</label><input class="input" id="inChampName" /></div>
+          <div><label class="lbl">Season</label><input class="input" id="inChampSeason" /></div>
+          <div class="full" style="display:flex;gap:8px;align-items:center">
+            <input type="checkbox" id="inFlPoint" />
+            <span style="font-size:12px;color:var(--dim)">Fastest-lap point (top 10)</span>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="btn btn-sm" id="btnApplyChamp">Apply</button>
+          <button class="btn btn-sm" id="btnImportRoster">⇥ Import roster as grid</button>
+        </div>
+        <div class="btn-row stack" style="margin-top:8px">
+          <button class="btn btn-sm btn-primary" id="btnApplyResults">🏆 Apply current result to championship</button>
+          <button class="btn btn-sm btn-danger" id="btnResetChamp">Clear all championship results</button>
+        </div>
+        <div id="standingsMini" style="margin-top:12px"></div>
+        <div class="card-title" style="margin-top:14px">Roster</div>
+        <div id="rosterList"></div>
+        <div class="field-row" style="grid-template-columns:60px 60px 1fr auto;margin-top:8px">
+          <div><input class="input" id="nrNumber" type="number" placeholder="#" /></div>
+          <div><input class="input" id="nrShort" placeholder="ABC" maxlength="3" /></div>
+          <div><input class="input" id="nrName" placeholder="Name" /></div>
+          <div><button class="btn btn-sm" id="btnAddRoster">+ Roster</button></div>
+        </div>
+        <div class="card-title" style="margin-top:14px">Archive</div>
+        <div id="archiveList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Export</div>
+        <div class="btn-row stack">
+          <button class="btn btn-sm" id="btnCopyResults">📋 Copy results text</button>
+          <button class="btn btn-sm" id="btnDlResults">⬇ Download results (.txt)</button>
+          <button class="btn btn-sm" id="btnDlRecap">⬇ Download race recap (.md)</button>
+        </div>
+        <div class="hint">Results text is formatted for pasting into your LLM chat / Discord.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Players connect</div>
+        <div class="qr-box">
+          <div id="qrBox"></div>
+          <div>
+            <div class="lbl">Checker URL (LAN)</div>
+            <div class="qr-url" id="netUrl">…</div>
+            <div class="hint" id="netHint">Friends on the same Wi-Fi open this URL on their devices.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script type="module" src="/js/host.js"></script>
+</body>
+</html>

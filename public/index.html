@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RWTRP Broadcast</title>
+  <link rel="stylesheet" href="/vendor/titillium-web/400.css" />
+  <link rel="stylesheet" href="/vendor/titillium-web/600.css" />
+  <link rel="stylesheet" href="/vendor/titillium-web/700.css" />
+  <link rel="stylesheet" href="/vendor/titillium-web/900.css" />
+  <link rel="stylesheet" href="/vendor/jetbrains-mono/400.css" />
+  <link rel="stylesheet" href="/vendor/jetbrains-mono/700.css" />
+  <link rel="stylesheet" href="/vendor/jetbrains-mono/800.css" />
+  <link rel="stylesheet" href="/css/base.css" />
+  <style>
+    body { display: grid; place-items: center; overflow: auto; padding: 32px 18px;
+      background: radial-gradient(1100px 600px at 50% -10%, rgba(255,214,10,0.07), transparent 60%), var(--bg); }
+    .wrap { width: min(880px, 100%); }
+    .hero { text-align: center; margin-bottom: 30px; }
+    .hero .mark { width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), #ff9e00); display: grid; place-items: center;
+      color: #161300; font-family: var(--font-mono); font-weight: 800; font-size: 30px;
+      box-shadow: 0 10px 34px rgba(255,214,10,0.35); }
+    .hero h1 { font-size: clamp(30px, 6vw, 52px); font-weight: 900; letter-spacing: 0.1em; line-height: 1.05; }
+    .hero h1 span { color: var(--accent); }
+    .hero p { color: var(--dim); margin-top: 10px; font-size: 15px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+    .door { display: block; text-decoration: none; color: inherit; padding: 26px; border-radius: 14px;
+      background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line-strong);
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+    .door:hover { transform: translateY(-3px); border-color: rgba(255,214,10,0.55); box-shadow: var(--shadow); }
+    .door .tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.26em; color: var(--accent); }
+    .door h2 { font-size: 26px; font-weight: 900; margin: 8px 0 6px; letter-spacing: 0.04em; }
+    .door p { color: var(--dim); font-size: 13.5px; line-height: 1.55; }
+    .door .go { margin-top: 14px; font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.1em; }
+    .lan { margin-top: 16px; padding: 20px 22px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+      background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); border-radius: 14px; }
+    .lan svg { width: 120px; height: 120px; background: rgba(255,255,255,0.03); border-radius: 10px; padding: 6px; flex: 0 0 auto; }
+    .lan .url { font-family: var(--font-mono); font-size: 13px; color: var(--accent); word-break: break-all; }
+    .lan .hint { color: var(--dim); font-size: 12.5px; margin-top: 6px; line-height: 1.5; }
+    .foot { text-align: center; color: var(--dim-2); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; margin-top: 26px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="mark">R</div>
+      <h1>RWTRP <span>BROADCAST</span></h1>
+      <p>Race Weekend Text Role Play — live broadcast console for your LLM-narrated racing league.<br/>One screen for the race director, one for every player.</p>
+    </div>
+
+    <div class="grid">
+      <a class="door" href="/host">
+        <div class="tag">ПУЛЬТ РЕЖИССЁРА</div>
+        <h2>HOST</h2>
+        <p>Race director console: move positions, gaps, tyres, pits, flags, weather, spotter &amp; radio messages, championship and exports. The person running the LLM chat sits here.</p>
+        <div class="go">OPEN HOST →</div>
+      </a>
+      <a class="door" href="/checker">
+        <div class="tag">ЭКРАН ИГРОКОВ</div>
+        <h2>CHECKER</h2>
+        <p>Broadcast view: timing tower, 2D track map with cars, sector flags, race feed, radio overlays, results, championship standings and position chart.</p>
+        <div class="go">OPEN CHECKER →</div>
+      </a>
+    </div>
+
+    <div class="lan">
+      <div id="qrBox"><div class="hint">Loading QR…</div></div>
+      <div style="flex:1;min-width:240px">
+        <div class="lbl">Checker URL for players (same Wi-Fi)</div>
+        <div class="url" id="netUrl">…</div>
+        <div class="hint" id="netHint">Each player opens this URL on their own device — the broadcast syncs live.</div>
+      </div>
+    </div>
+
+    <div class="foot">RWTRP BROADCAST · LOCAL SERVER · NO PHYSICS, JUST SHOW</div>
+  </div>
+
+  <script type="module">
+    fetch('/api/network').then((r) => r.json()).then((net) => {
+      document.getElementById('netUrl').textContent = net.checkerUrl;
+      document.getElementById('qrBox').innerHTML = net.qrSvg || '';
+      const ips = net.ips || [];
+      document.getElementById('netHint').textContent = ips.length
+        ? `Detected LAN: ${ips.join(', ')}. Players on the same network open the URL above (or scan the QR).`
+        : 'No LAN address detected — use localhost on this machine.';
+    }).catch(() => {
+      document.getElementById('netUrl').textContent = 'Server unreachable';
+    });
+  </script>
+</body>
+</html>
